@@ -63,9 +63,9 @@ def compile_notes(notes_list):
     track = midi.Track()
     pattern.append(track)
     for note in notes_list:
-        on = midi.NoteOnEvent(tick = 0, velocity=20, pitch = note.getPitch())
+        on = midi.NoteOnEvent(tick=0, velocity=20, pitch=note.getPitch())
         track.append(on)
-        off = midi.NoteOffEvent(tick = 100, pitch = note.getPitch())
+        off = midi.NoteOffEvent(tick=100, pitch=note.getPitch())
         track.append(off)
     eot = midi.EndOfTrackEvent(tick=1)
     track.append(eot)
