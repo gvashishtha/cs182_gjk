@@ -29,8 +29,10 @@ class Note(object):
     def getPitch(self):
         return self.pitch
 
+    @staticmethod
     def harmonic(self, other):
         interval = abs(self.pitch - other.getPitch())
+        print ('interval between {} and {} is {}'.format(self, other, interval))
         return ((interval == MINOR3RD) or
                 (interval == MAJOR3RD) or
                 (interval == FIFTH) or
