@@ -43,6 +43,7 @@ class Note(object):
                 (interval == MAJOR10TH) or
                 (interval == TWELFTH))
 
+    @staticmethod
     def perfectHarmonic(self, other):
         interval = abs(self.pitch - other.getPitch())
         return ((interval == UNISON) or
