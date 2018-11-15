@@ -13,7 +13,7 @@ class Constraint(object):
         """
         revise(), defined on page 10 of Ovans 1990
         """
-        print('revise called with var_i {}, predicate {}'.format(var_i.name, predicate))
+        #print('revise called with var_i {}, predicate {}'.format(var_i.name, predicate))
         domain1 = self.var.getDomain()
         domain2 = var_i.getDomain()
         newDomain = []
@@ -208,8 +208,9 @@ class Csp(object):
         #print('finding solution at index {} with numVariables {}'.format(index, numVariables))
         if index == numVariables:
             self.sol += 1
-            print('index is numVariables')
-            print(map(lambda x: x.printDomain(), self.vars))
+            if self.count < 0:
+                print('index is numVariables')
+                print(map(lambda x: x.printDomain(), self.vars))
             return True
 
         # select a variable from list to instantiate
@@ -224,8 +225,8 @@ class Csp(object):
             for j in range(index, numVariables):
                 saved_vars[j] = (copy.deepcopy(self.vars[j]))
             if cur_var.instantiate(cur_domain[i]):
-                if self.count < 50:
-                    #print('instantiating at index {} with var {}'.format(index, cur_domain[i]))
+                if self.count < 0:
+                    print('instantiating at index {} with var {}'.format(index, cur_domain[i]))
                     self.count += 1
                 self.nodes += 1
                 success = self.findOneSolution(index, numVariables)
@@ -235,13 +236,20 @@ class Csp(object):
                 except IndexError:
                     print('Index Error: j is {}, index is {}, self.vars is {}, saved_vars is {}'.format(j, index, self.vars, saved_vars))
             if success:
+                if self.count < 0:
+                    print('breaking with vars {}'.format(self.vars))
                 break
 
+        if success and self.count < 0:
+            print('successful, vars {}'.format(self.vars))
+            print('got success, index {}'.format(index-1))
         cur_var.setDomain(cur_domain)
 
         if not success:
             self.bts += 1
             return False
+        else:
+            return True
 
     def findASolution(self):
         return self.findOneSolution(0, len(self.vars))
