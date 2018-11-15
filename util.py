@@ -131,10 +131,10 @@ class Variable(object):
         self.domain.append(obj)
 
     def __repr__(self):
-        return '<Variable name: {}'.format(self.name)
+        return '<Variable name: {} domain: {}'.format(self.name, self.printDomain())
 
-    def printdomain(self):
-        return (map(lambda x: x.__repr__(), self.domain).join())
+    def printDomain(self):
+        return ''.join(map(lambda x: x.__repr__(), self.domain))
 
     def getDomain(self):
         return self.domain
@@ -157,17 +157,20 @@ class Variable(object):
             i += 1
         return result
 
-    def instantiate(self, domain):
-        new_var = Variable(self.name + 'child')
-        if new_var.alertChanged():
+    def instantiate(self, obj):
+        #new_var = Variable(self.name + 'child')
+        temp_domain = copy.deepcopy(self.domain)
+        self.domain = [obj]
+        if  self.alertChanged():
             return True
         else:
+            self.domain = temp_domain
             return False
 
 class Csp(object):
     def __init__(self):
         self.vars = []
-        self.bts = self.nodes = self.sol = 0
+        self.bts = self.nodes = self.sol = self.count = 0
 
     def addToVariables(self, var):
         self.vars.append(var)
@@ -202,9 +205,11 @@ class Csp(object):
         return self.findSolutions2(0, len(self.vars))
 
     def findOneSolution(self, index, numVariables):
+        #print('finding solution at index {} with numVariables {}'.format(index, numVariables))
         if index == numVariables:
             self.sol += 1
-            map(lambda x: x.printDomain(), self.vars)
+            print('index is numVariables')
+            print(map(lambda x: x.printDomain(), self.vars))
             return True
 
         # select a variable from list to instantiate
@@ -218,9 +223,12 @@ class Csp(object):
             saved_vars = {}
             for j in range(index, numVariables):
                 saved_vars[j] = (copy.deepcopy(self.vars[j]))
-                if cur_var.instantiate(cur_domain[i]):
-                    self.nodes += 1
-                    success = self.findOneSolution(index, numVariables)
+            if cur_var.instantiate(cur_domain[i]):
+                if self.count < 50:
+                    #print('instantiating at index {} with var {}'.format(index, cur_domain[i]))
+                    self.count += 1
+                self.nodes += 1
+                success = self.findOneSolution(index, numVariables)
             for j in range(index, numVariables):
                 try:
                     self.vars[j] = saved_vars[j]
