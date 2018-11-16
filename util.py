@@ -68,24 +68,25 @@ class Constraint3(Constraint):
                     while True:
                         if constraint(domain1[k], memberD2, memberD3):
                             satisfied = True
+                        k += 1
                         if satisfied or k >= len(domain1):
                             break
                     if satisfied or j >= len(domain3):
                         break
 
                 if not satisfied:
-                    return True
+                    changed = True
 
                 else:
                     newDomain2.append(memberD2)
-                    return False
+                    #return False
 
-        changed = changed or domain_check(domain2, domain3, newDomain2, newDomain3)
+        #changed = changed or domain_check(domain2, domain3, newDomain2, newDomain3)
 
         if len(newDomain2) == 0:
             return False
 
-        changed = changed or domain_check(domain3, domain2, newDomain3, newDomain2)
+        #changed = changed or domain_check(domain3, domain2, newDomain3, newDomain2)
 
         if len(newDomain3) == 0:
             return False
@@ -94,7 +95,7 @@ class Constraint3(Constraint):
             self.var.setDomain(newDomain2)
             self.var2.setDomain(newDomain3)
             if self.var.alertChanged() and self.var2.alertChanged():# propagate!
-                return False
+                return True
             else:
                 self.var.setDomain(domain2)
                 self.var.setDomain(domain3)
@@ -154,6 +155,8 @@ class Variable(object):
         while (result and i < len(self.neighbors)):
             link = self.neighbors[i]
             result = link.getNode().revise(self, link.label)
+            if not result:
+                print('we are {}. \n\nfailed test at {} \n\nand {}'.format(self.__repr__(), link.node.var,link.node.var2))
             i += 1
         return result
 
@@ -266,5 +269,6 @@ class Csp(object):
     def makeArcConsistent(self):
         for i in range(len(self.vars)):
             if not self.vars[i].alertChanged(): # if a variable's domain is now empty
+                print('failing variable at line 272 is {}'.format(self.vars[i]))
                 return False
         return True
