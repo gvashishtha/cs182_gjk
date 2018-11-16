@@ -77,33 +77,35 @@ def main():
     cf[NUM_BARS-1].addToNeighbors(L)
 
     # the Ternary constraints ...
-    for i in range(0,0): #, NUM_BARS - 2):
-        ternary = Constraint3()
-        ternary.setVariable(cp[i+1])
-        ternary.setVariable2(cp[i+2])
-        L = Link()
-        L.setNode(ternary)
-        L.setLabel(Note.skip)
-        #L.setLabel(lambda x,y,z: Note.skip(x,y,z) and Note.step(x,y,z))
-        cp[i].addToNeighbors(L)
+#TODO: Need to fix these!
+    for i in range(0, NUM_BARS - 2):
+        # ternary = Constraint3()
+        # ternary.setVariable(cp[i+1])
+        # ternary.setVariable2(cp[i+2])
+        # L = Link()
+        # L.setNode(ternary)
+        # L.setLabel(Note.skip)
+        # #L.setLabel(lambda x,y,z: Note.skip(x,y,z) and Note.step(x,y,z))
+        # cp[i].addToNeighbors(L)
+        #
+        # ternary = Constraint3()
+        # ternary.setVariable(cp[i])
+        # ternary.setVariable2(cp[i+2])
+        # L = Link()
+        # L.setNode(ternary)
+        # L.setLabel(Note.skipped)
+        # #L.setLabel(lambda x,y,z: Note.skipped(x,y,z) and Note.step(x,y,z))
+        # cp[i+1].addToNeighbors(L)
 
-        ternary = Constraint3()
-        ternary.setVariable(cp[i])
-        ternary.setVariable2(cp[i+2])
-        L = Link()
-        L.setNode(ternary)
-        L.setLabel(Note.skipped)
-        #L.setLabel(lambda x,y,z: Note.skipped(x,y,z) and Note.step(x,y,z))
-        cp[i+1].addToNeighbors(L)
-
-        ternary = Constraint3()
-        ternary.setVariable(cp[i])
-        ternary.setVariable2(cp[i+1])
-        L = Link()
-        L.setNode(ternary)
-        L.setLabel(Note.step)
-        #L.setLabel(lambda x,y,z: Note.step(x,y,z) and Note.skip(x,y,z))
-        cp[i+2].addToNeighbors(L)
+        # ternary = Constraint3()
+        # ternary.setVariable(cp[i])
+        # ternary.setVariable2(cp[i+1])
+        # L = Link()
+        # L.setNode(ternary)
+        # L.setLabel(Note.step)
+        # #L.setLabel(lambda x,y,z: Note.step(x,y,z) and Note.skip(x,y,z))
+        # cp[i+2].addToNeighbors(L)
+        pass
 
     if csp.makeArcConsistent():
         print('Consistent - looking for a solution')

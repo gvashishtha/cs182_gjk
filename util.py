@@ -56,29 +56,30 @@ class Constraint3(Constraint):
         # check that each member of domain 2 is satisfied
         # by at least one member of domain3 and domain1
         # if so, add it to the newDomain2
-        def domain_check(domain2, domain3, newDomain2, newDomain3):
-            for i in range(len(domain2)):
-                memberD2 = domain2[i]
-                satisfied = False
+        #def domain_check(domain2, domain3, newDomain2, newDomain3):
+        for i in range(len(domain2)):
+            memberD2 = domain2[i]
+            satisfied = False
 
-                j = 0
+            j = 0
+            while True:
+                memberD3 = domain3[j]
+                k = 0
                 while True:
-                    memberD3 = domain3[j]
-                    k = 0
-                    while True:
-                        if constraint(domain1[k], memberD2, memberD3):
-                            satisfied = True
-                        k += 1
-                        if satisfied or k >= len(domain1):
-                            break
-                    if satisfied or j >= len(domain3):
+                    if constraint(domain1[k], memberD2, memberD3):
+                        satisfied = True
+                    k += 1
+                    if satisfied or k >= len(domain1):
                         break
+                j += 1
+                if satisfied or j >= len(domain3):
+                    break
 
-                if not satisfied:
-                    changed = True
+            if not satisfied:
+                changed = True
 
-                else:
-                    newDomain2.append(memberD2)
+            else:
+                newDomain2.append(memberD2)
                     #return False
 
         #changed = changed or domain_check(domain2, domain3, newDomain2, newDomain3)
@@ -88,6 +89,29 @@ class Constraint3(Constraint):
 
         #changed = changed or domain_check(domain3, domain2, newDomain3, newDomain2)
 
+        for i in range(len(domain3)):
+            memberD3 = domain3[i]
+            satisfied = False
+
+            j = 0
+            while True:
+                memberD2 = domain2[j]
+                k = 0
+                while True:
+                    if constraint(domain1[k], memberD2, memberD3):
+                        satisfied = True
+                    k += 1
+                    if satisfied or k >= len(domain1):
+                        break
+                j += 1
+                if satisfied or j >= len(domain3):
+                    break
+
+            if not satisfied:
+                changed = True
+
+            else:
+                newDomain3.append(memberD3)
         if len(newDomain3) == 0:
             return False
 
@@ -155,8 +179,8 @@ class Variable(object):
         while (result and i < len(self.neighbors)):
             link = self.neighbors[i]
             result = link.getNode().revise(self, link.label)
-            if not result:
-                print('we are {}. \n\nfailed test at {} \n\nand {}'.format(self.__repr__(), link.node.var,link.node.var2))
+            #if not result:
+                #print('we are {}. \n\nfailed test at {} \n\nand {}'.format(self.__repr__(), link.node.var,link.node.var2))
             i += 1
         return result
 
