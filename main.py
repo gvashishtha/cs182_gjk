@@ -91,7 +91,7 @@ def main():
 
     if csp.makeArcConsistent():
         print('Consistent - looking for a solution')
-        csp.findASolution()
+        csp.findSolutions()
     else:
         print('Not consistent')
         return
