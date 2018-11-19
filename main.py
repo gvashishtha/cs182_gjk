@@ -2,7 +2,7 @@ from util import Constraint, Constraint3, Csp, Link, Variable
 from note import Note
 import midi
 
-NUM_BARS = 7
+NUM_BARS = 4
 
 def main():
     csp = Csp()
@@ -21,9 +21,6 @@ def main():
     # the cantus firmus
     note_list = [57, 60, 59, 57]
 
-    #mary had a little lamb
-    note_list = [midi.E_3, midi.D_3, midi.C_3, midi.D_3, midi.E_3, midi.E_3, midi.E_3]
-
     for i in range(len(note_list)):
         note = Note(note_list[i])
         cf[i].addToDomain(note)
@@ -31,21 +28,11 @@ def main():
     for i in range(NUM_BARS):
         note_list = [45, 47, 48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69]
 
-        note_list = list(range(50,100))
-        # included major 3rd, minor 3rd, and fifth for all notes in Mary
-        # https://en.wikipedia.org/wiki/Harmony#Intervals
-        #note_list = [midi.Gs_2, midi.G_2, midi.B_2, midi.Fs_2, midi.F_2, midi.A_2, midi.E_2, midi.Fs_2, midi.G_2]
-        #note_list = [45, 47, 60]
         if i != (NUM_BARS - 2):
             map(lambda x: cp[i].addToDomain(Note(x)), note_list)
         else:
             note_list = [56, 68]
-            note_list = list(range(0,100))
             map(lambda x: cp[i].addToDomain(Note(x)), note_list)
-
-    #print(csp.vars)
-
-
 
     # binary constraints, p. 109 of Ovans
     for i in range(1, NUM_BARS):
@@ -110,7 +97,14 @@ def main():
         return
 
     print('Found {} solutions!'.format(csp.sol))
-    print('solution is: {}'.format(cp))
+
+    cp_pitches = []
+    cf_pitches = []
+    for i in range(len(csp.one_sol)):
+        if i%2 == 0:
+            cp_pitches.append(csp.one_sol[i].domain[0].getPitch())
+        else:
+            cf_pitches.append(csp.one_sol[i].domain[0].getPitch())
 
     def append_note(track, pitch):
         on = midi.NoteOnEvent(tick=0, velocity=70, pitch=pitch)
@@ -124,17 +118,14 @@ def main():
     pattern.append(track_cf)
     pattern.append(track_cp)
     for i in range(NUM_BARS):
-        cp_pitch = cp[i].domain[0].getPitch()
-        cf_pitch = cf[i].domain[0].getPitch()
+        cp_pitch = cp_pitches[i]
+        cf_pitch = cf_pitches[i]
         append_note(track_cf, cf_pitch)
         append_note(track_cp, cp_pitch)
     eot = midi.EndOfTrackEvent(tick=1)
     track_cp.append(eot)
     track_cf.append(eot)
     midi.write_midifile("solution.mid", pattern)
-
-    # for note in cp:
-    #     print(note)
 
 
 if __name__ == '__main__':

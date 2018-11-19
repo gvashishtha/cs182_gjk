@@ -174,7 +174,9 @@ class Variable(object):
         #new_var = Variable(self.name + 'child')
         temp_domain = copy.deepcopy(self.domain)
         self.domain = [obj]
-        if  self.alertChanged():
+        if self.alertChanged():
+            if self.name == 'cp5':
+                print('cp5 returning true with domain {}'.format(self.domain))
             return True
         else:
             self.domain = temp_domain
@@ -184,6 +186,7 @@ class Csp(object):
     def __init__(self):
         self.vars = []
         self.bts = self.nodes = self.sol = self.count = 0
+        self.one_sol = None
 
     def addToVariables(self, var):
         self.vars.append(var)
@@ -221,9 +224,8 @@ class Csp(object):
         #print('finding solution at index {} with numVariables {}'.format(index, numVariables))
         if index == numVariables:
             self.sol += 1
-            if self.count < 0:
-                print('index is numVariables')
-                print(map(lambda x: x.printDomain(), self.vars))
+            print('solution is {}'.format(self.vars))
+            self.one_sol = copy.deepcopy(self.vars)
             return True
 
         # select a variable from list to instantiate
@@ -238,24 +240,14 @@ class Csp(object):
             for j in range(index, numVariables):
                 saved_vars[j] = (copy.deepcopy(self.vars[j]))
             if cur_var.instantiate(cur_domain[i]):
-                if self.count < 0:
-                    print('instantiating at index {} with var {}'.format(index, cur_domain[i]))
-                    self.count += 1
                 self.nodes += 1
                 success = self.findOneSolution(index, numVariables)
-            for j in range(index, numVariables):
-                try:
-                    self.vars[j] = saved_vars[j]
-                except IndexError:
-                    print('Index Error: j is {}, index is {}, self.vars is {}, saved_vars is {}'.format(j, index, self.vars, saved_vars))
             if success:
-                if self.count < 0:
-                    print('breaking with vars {}'.format(self.vars))
                 break
+            if not success:
+                for j in range(index, numVariables):
+                    self.vars[j] = saved_vars[j]
 
-        if success and self.count < 0:
-            print('successful, vars {}'.format(self.vars))
-            print('got success, index {}'.format(index-1))
         cur_var.setDomain(cur_domain)
 
         if not success:
