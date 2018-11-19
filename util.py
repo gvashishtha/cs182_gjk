@@ -13,7 +13,6 @@ class Constraint(object):
         """
         revise(), defined on page 10 of Ovans 1990
         """
-        #print('revise called with var_i {}, predicate {}'.format(var_i.name, predicate))
         domain1 = self.var.getDomain()
         domain2 = var_i.getDomain()
         newDomain = []
@@ -159,14 +158,11 @@ class Variable(object):
     # notify all its neighbors that its domain has been changed
     # return True if the changes did not result in an empty set
     def alertChanged(self):
-        #print('alert changed called on {} with neighbors{}'.format(self.name, self.neighbors))
         i = 0
         result = True
         while (result and i < len(self.neighbors)):
             link = self.neighbors[i]
             result = link.getNode().revise(self, link.label)
-            #if not result:
-                #print('we are {}. \n\nfailed test at {} \n\nand {}'.format(self.__repr__(), link.node.var,link.node.var2))
             i += 1
         return result
 
@@ -194,7 +190,9 @@ class Csp(object):
     def findSolutions2(self, index, numVariables):
         if index == numVariables:
             self.sol += 1
-            map(lambda x: x.printDomain(), self.vars)
+            if self.sol == 10:
+                self.one_sol = copy.deepcopy(self.vars)
+            print('solution is {}'.format(self.vars))
             return
 
         cur_var = self.vars[index]
@@ -203,13 +201,13 @@ class Csp(object):
 
         success = False
         for i in range(len(cur_domain)):
-            saved_vars = []
+            saved_vars = {}
             for j in range(index, numVariables):
-                saved_vars.append(copy.deepcopy(self.vars[j]))
-                if cur_var.instantiate(cur_domain[i]):
-                    success = True
-                    self.nodes += 1
-                    self.findSolutions2(index, numVariables)
+                saved_vars[j] = copy.deepcopy(self.vars[j])
+            if cur_var.instantiate(cur_domain[i]):
+                success = True
+                self.nodes += 1
+                self.findSolutions2(index, numVariables)
             for j in range(index, numVariables):
                 self.vars[j] = saved_vars[j]
         if not success:
@@ -271,6 +269,6 @@ class Csp(object):
     def makeArcConsistent(self):
         for i in range(len(self.vars)):
             if not self.vars[i].alertChanged(): # if a variable's domain is now empty
-                print('failing variable at line 272 is {}'.format(self.vars[i]))
+                print('failing variable is {}'.format(self.vars[i]))
                 return False
         return True
