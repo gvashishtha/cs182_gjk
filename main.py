@@ -2,7 +2,7 @@ from util import Constraint, Constraint3, Csp, Link, Variable
 from note import Note
 import midi
 
-NUM_BARS = 4
+NUM_BARS = 7
 
 def main():
     csp = Csp()
@@ -22,7 +22,7 @@ def main():
     note_list = [57, 60, 59, 57]
 
     #mary had a little lamb
-    #note_list = [midi.E_2, midi.D_2, midi.C_2, midi.D_2, midi.E_2, midi.E_2, midi.E_2]
+    note_list = [midi.E_3, midi.D_3, midi.C_3, midi.D_3, midi.E_3, midi.E_3, midi.E_3]
 
     for i in range(len(note_list)):
         note = Note(note_list[i])
@@ -31,6 +31,7 @@ def main():
     for i in range(NUM_BARS):
         note_list = [45, 47, 48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69]
 
+        note_list = list(range(50,100))
         # included major 3rd, minor 3rd, and fifth for all notes in Mary
         # https://en.wikipedia.org/wiki/Harmony#Intervals
         #note_list = [midi.Gs_2, midi.G_2, midi.B_2, midi.Fs_2, midi.F_2, midi.A_2, midi.E_2, midi.Fs_2, midi.G_2]
@@ -39,6 +40,7 @@ def main():
             map(lambda x: cp[i].addToDomain(Note(x)), note_list)
         else:
             note_list = [56, 68]
+            note_list = list(range(0,100))
             map(lambda x: cp[i].addToDomain(Note(x)), note_list)
 
     #print(csp.vars)
@@ -64,48 +66,41 @@ def main():
 
     for i in range(1, NUM_BARS-2):
         L = Link()
-        L.setNode(binary[i-1])
+        L.setNode(binary[i])
         L.setLabel(Note.harmonic)
-        #L.setLabel(lambda x, y: L.node.var.harmonic(y))
         cf[i].addToNeighbors(L)
 
     # no harmonic constraint 2nd to last bar
     L = Link()
     L.setNode(binary[NUM_BARS - 1])
     L.setLabel(Note.perfectHarmonic)
-    #L.setLabel(lambda x: L.node.var.harmonic)
     cf[NUM_BARS-1].addToNeighbors(L)
 
     # the Ternary constraints ...
-#TODO: Need to fix these!
     for i in range(0, NUM_BARS - 2):
-        # ternary = Constraint3()
-        # ternary.setVariable(cp[i+1])
-        # ternary.setVariable2(cp[i+2])
-        # L = Link()
-        # L.setNode(ternary)
-        # L.setLabel(Note.skip)
-        # #L.setLabel(lambda x,y,z: Note.skip(x,y,z) and Note.step(x,y,z))
-        # cp[i].addToNeighbors(L)
-        #
-        # ternary = Constraint3()
-        # ternary.setVariable(cp[i])
-        # ternary.setVariable2(cp[i+2])
-        # L = Link()
-        # L.setNode(ternary)
-        # L.setLabel(Note.skipped)
-        # #L.setLabel(lambda x,y,z: Note.skipped(x,y,z) and Note.step(x,y,z))
-        # cp[i+1].addToNeighbors(L)
+        ternary = Constraint3()
+        ternary.setVariable(cp[i+1])
+        ternary.setVariable2(cp[i+2])
+        L = Link()
+        L.setNode(ternary)
+        L.setLabel(Note.skip)
+        cp[i].addToNeighbors(L)
 
-        # ternary = Constraint3()
-        # ternary.setVariable(cp[i])
-        # ternary.setVariable2(cp[i+1])
-        # L = Link()
-        # L.setNode(ternary)
-        # L.setLabel(Note.step)
-        # #L.setLabel(lambda x,y,z: Note.step(x,y,z) and Note.skip(x,y,z))
-        # cp[i+2].addToNeighbors(L)
-        pass
+        ternary = Constraint3()
+        ternary.setVariable(cp[i])
+        ternary.setVariable2(cp[i+2])
+        L = Link()
+        L.setNode(ternary)
+        L.setLabel(Note.skipped)
+        cp[i+1].addToNeighbors(L)
+
+        ternary = Constraint3()
+        ternary.setVariable(cp[i])
+        ternary.setVariable2(cp[i+1])
+        L = Link()
+        L.setNode(ternary)
+        L.setLabel(Note.step)
+        cp[i+2].addToNeighbors(L)
 
     if csp.makeArcConsistent():
         print('Consistent - looking for a solution')
@@ -115,6 +110,7 @@ def main():
         return
 
     print('Found {} solutions!'.format(csp.sol))
+    print('solution is: {}'.format(cp))
 
     def append_note(track, pitch):
         on = midi.NoteOnEvent(tick=0, velocity=70, pitch=pitch)

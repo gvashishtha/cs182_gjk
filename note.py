@@ -77,15 +77,6 @@ class Note(object):
         return (self.pitch != other.getPitch() or self.pitch != other2.getPitch())
 
     @staticmethod
-    def step(self, other, other2):
-        self.checks += 1
-        interval = abs(self.pitch - other2.getPitch())
-
-        if interval <= MAJOR2ND:
-            return self.noThree(self, other, other2)
-        else:
-            return ((abs(other.getPitch()-other2.getPitch()) < MINOR3RD) and self.noThree(self, other, other2))
-    @staticmethod
     def skip(self, other, other2):
         self.checks += 1
         interval = abs(self.pitch-other.getPitch())
@@ -98,10 +89,20 @@ class Note(object):
     def skipped(self, other, other2):
         self.checks += 1
         interval = abs(self.pitch -other.getPitch())
-        if interval <= MAJOR2ND:
-            return self.noThree(other, other2)
+        if interval >= MINOR3RD:
+            return ((abs(self.pitch-other2.getPitch()) <= MAJOR2ND) and self.noThree(self, other, other2))
         else:
-            return ((abs(other.getPitch()-other2.getPitch()) < MINOR3RD) and self.noThree(other, other2))
+            return self.noThree(self, other, other2)
+
+    @staticmethod
+    def step(self, other, other2):
+        self.checks += 1
+        interval = abs(self.pitch - other2.getPitch())
+
+        if interval <= MAJOR2ND:
+            return self.noThree(self, other, other2)
+        else:
+            return ((abs(other.getPitch()-other2.getPitch()) < MINOR3RD) and self.noThree(self, other, other2))
 
     @staticmethod
     def perfect(self, x1, x2):
