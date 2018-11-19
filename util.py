@@ -258,13 +258,13 @@ class Csp(object):
         return self.findOneSolution(0, len(self.vars))
 
     def getSol(self):
-        return sol
+        return self.sol
 
     def getBts(self):
-        return bts
+        return self.bts
 
     def getNodes(self):
-        return nodes
+        return self.nodes
 
     def makeArcConsistent(self):
         for i in range(len(self.vars)):

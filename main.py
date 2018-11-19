@@ -96,7 +96,7 @@ def main():
         print('Not consistent')
         return
 
-    print('Found {} solutions!'.format(csp.sol))
+    print('Found {} solutions! Expanded {} nodes with {} backtracks'.format(csp.getSol(), csp.getNodes(), csp.getBts()))
 
     cp_pitches = []
     cf_pitches = []
@@ -106,8 +106,8 @@ def main():
         else:
             cf_pitches.append(csp.one_sol[i].domain[0].getPitch())
 
-    def append_note(track, pitch):
-        on = midi.NoteOnEvent(tick=0, velocity=70, pitch=pitch)
+    def append_note(track, pitch, velocity=70):
+        on = midi.NoteOnEvent(tick=0, velocity=velocity, pitch=pitch)
         track.append(on)
         off = midi.NoteOffEvent(tick=100, pitch=pitch)
         track.append(off)
@@ -121,7 +121,7 @@ def main():
         cp_pitch = cp_pitches[i]
         cf_pitch = cf_pitches[i]
         append_note(track_cf, cf_pitch)
-        append_note(track_cp, cp_pitch)
+        append_note(track_cp, cp_pitch,60)
     eot = midi.EndOfTrackEvent(tick=1)
     track_cp.append(eot)
     track_cf.append(eot)
