@@ -1,15 +1,18 @@
 from util import Constraint, Constraint3, Csp, Link, Variable
 from note import Note
+import random
 import midi
 
 NUM_BARS = 4
+NOTE_RANGE = [45, 47, 48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69]
 
-def main():
+def main(num_bars=NUM_BARS, cantus_file='cantus_firmus.mid',
+            solution_file='solution.mid'):
     csp = Csp()
     cp = [] # list of counterpoint variables
     cf = [] # list of __ variables
     binary = [] # list of binary constraints
-    for i in range(NUM_BARS):
+    for i in range(num_bars):
         cp.append(Variable('cp' + str(i)))
         csp.addToVariables(cp[i])
         binary.append(Constraint())
@@ -18,24 +21,29 @@ def main():
         cf.append(Variable('cf' + str(i)))
         csp.addToVariables(cf[i])
 
-    # the cantus firmus
-    note_list = [57, 60, 59, 57]
+    print('Generating a cantus firmus over ' + str(num_bars) + ' bars')
+    note_list = []
+    for i in range(num_bars):
+        note_list.append(random.sample(NOTE_RANGE, 1)[0])
 
     for i in range(len(note_list)):
         note = Note(note_list[i])
         cf[i].addToDomain(note)
 
-    for i in range(NUM_BARS):
+    print('Cantus firmus sequential note pitches: ')
+    print(note_list)
+
+    for i in range(num_bars):
         note_list = [45, 47, 48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69]
 
-        if i != (NUM_BARS - 2):
+        if i != (num_bars - 2):
             map(lambda x: cp[i].addToDomain(Note(x)), note_list)
         else:
             note_list = [56, 68]
             map(lambda x: cp[i].addToDomain(Note(x)), note_list)
 
     # binary constraints, p. 109 of Ovans
-    for i in range(1, NUM_BARS):
+    for i in range(1, num_bars):
         L = Link()
         L.setNode(binary[i-1])
         L.setLabel(Note.melodic)
@@ -51,7 +59,7 @@ def main():
     L.setLabel(Note.perfectCfHarmonic)
     cf[0].addToNeighbors(L)
 
-    for i in range(1, NUM_BARS-2):
+    for i in range(1, num_bars-2):
         L = Link()
         L.setNode(binary[i])
         L.setLabel(Note.harmonic)
@@ -59,12 +67,12 @@ def main():
 
     # no harmonic constraint 2nd to last bar
     L = Link()
-    L.setNode(binary[NUM_BARS - 1])
+    L.setNode(binary[num_bars - 1])
     L.setLabel(Note.perfectHarmonic)
-    cf[NUM_BARS-1].addToNeighbors(L)
+    cf[num_bars-1].addToNeighbors(L)
 
     # the Ternary constraints ...
-    for i in range(0, NUM_BARS - 2):
+    for i in range(0, num_bars - 2):
         ternary = Constraint3()
         ternary.setVariable(cp[i+1])
         ternary.setVariable2(cp[i+2])
@@ -91,7 +99,7 @@ def main():
 
     if csp.makeArcConsistent():
         print('Consistent - looking for a solution')
-        csp.findSolutions()
+        csp.findASolution()
     else:
         print('Not consistent')
         return
@@ -112,12 +120,19 @@ def main():
         off = midi.NoteOffEvent(tick=100, pitch=pitch)
         track.append(off)
 
+    cantus_pattern = midi.Pattern()
+    cantus_track = midi.Track()
+    cantus_pattern.append(cantus_track)
+    for i in range(num_bars):
+        cantus_pitch = cf_pitches[i]
+        append_note(cantus_track, cantus_pitch)
+
     pattern = midi.Pattern()
     track_cf = midi.Track()
     track_cp = midi.Track()
     pattern.append(track_cf)
     pattern.append(track_cp)
-    for i in range(NUM_BARS):
+    for i in range(num_bars):
         cp_pitch = cp_pitches[i]
         cf_pitch = cf_pitches[i]
         append_note(track_cf, cf_pitch)
@@ -125,8 +140,13 @@ def main():
     eot = midi.EndOfTrackEvent(tick=1)
     track_cp.append(eot)
     track_cf.append(eot)
-    midi.write_midifile("solution.mid", pattern)
 
+    cantus_track.append(eot)
+    midi.write_midifile(cantus_file, cantus_pattern)
+    midi.write_midifile(solution_file, pattern)
+
+    print('\nCantus firmus midi: ' + cantus_file)
+    print('Solution midi: ' + solution_file)
 
 if __name__ == '__main__':
     main()
