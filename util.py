@@ -2,7 +2,7 @@ import copy
 
 class Constraint(object):
     """
-    Constrains a single object of class Variable. (see p. 25 of Ovans)
+    Constrains a single object of class Variable. (see p. 84 of Ovans)
 
     """
 
@@ -11,7 +11,7 @@ class Constraint(object):
 
     def revise(self, var_i, predicate):
         """
-        revise(), defined on page 10 of Ovans 1990
+        revise(), defined on page 84 of Ovans 1990
         """
         domain1 = self.var.getDomain()
         domain2 = var_i.getDomain()
@@ -171,8 +171,6 @@ class Variable(object):
         temp_domain = copy.deepcopy(self.domain)
         self.domain = [obj]
         if self.alertChanged():
-            if self.name == 'cp5':
-                print('cp5 returning true with domain {}'.format(self.domain))
             return True
         else:
             self.domain = temp_domain
@@ -222,7 +220,7 @@ class Csp(object):
         #print('finding solution at index {} with numVariables {}'.format(index, numVariables))
         if index == numVariables:
             self.sol += 1
-            print('solution is {}'.format(self.vars))
+            # print('solution is {}'.format(self.vars))
             self.one_sol = copy.deepcopy(self.vars)
             return True
 
@@ -240,11 +238,12 @@ class Csp(object):
             if cur_var.instantiate(cur_domain[i]):
                 self.nodes += 1
                 success = self.findOneSolution(index, numVariables)
+
+            #if not success:
+            for j in range(index, numVariables):
+                self.vars[j] = saved_vars[j]
             if success:
                 break
-            if not success:
-                for j in range(index, numVariables):
-                    self.vars[j] = saved_vars[j]
 
         cur_var.setDomain(cur_domain)
 
