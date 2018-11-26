@@ -3,11 +3,13 @@ from note import Note
 import random
 import midi
 
+# ensure repeatability
+random.seed(4)
 NUM_BARS = 4
 NOTE_RANGE = [45, 47, 48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69]
 
 def main(num_bars=NUM_BARS, cantus_file='cantus_firmus.mid',
-            solution_file='solution.mid'):
+            solution_file='solution.mid', testing=False):
     csp = Csp()
     cp = [] # list of counterpoint variables
     cf = [] # list of __ variables
@@ -21,10 +23,13 @@ def main(num_bars=NUM_BARS, cantus_file='cantus_firmus.mid',
         cf.append(Variable('cf' + str(i)))
         csp.addToVariables(cf[i])
 
-    print('Generating a cantus firmus over ' + str(num_bars) + ' bars')
-    note_list = []
-    for i in range(num_bars):
-        note_list.append(random.sample(NOTE_RANGE, 1)[0])
+    if testing:
+        print('Generating a cantus firmus over ' + str(num_bars) + ' bars')
+        note_list = []
+        for i in range(num_bars):
+            note_list.append(random.sample(NOTE_RANGE, 1)[0])
+    else:
+        note_list = [57,60,59,57]
 
     for i in range(len(note_list)):
         note = Note(note_list[i])
@@ -98,7 +103,7 @@ def main(num_bars=NUM_BARS, cantus_file='cantus_firmus.mid',
         cp[i+2].addToNeighbors(L)
 
     if csp.makeArcConsistent():
-        print('Consistent - looking for a solution')
+        print('Arc consistent - looking for a solution')
         csp.findASolution()
     else:
         print('Not consistent')
