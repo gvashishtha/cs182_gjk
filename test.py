@@ -1,4 +1,5 @@
 from main import main as generate_music
+import os
 import timeit
 
 
@@ -8,6 +9,9 @@ bars_range = [4, 8, 12, 24]
 num_trials = 4
 # Directory to write midi test files
 test_dir = 'tests/'
+
+if not os.path.exists(test_dir):
+    os.makedirs(test_dir)
 
 # Generate composition with specified parameters. Returns runtime in seconds
 def test_generation(num_bars, cantus_file, solution_file):
