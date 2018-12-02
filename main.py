@@ -4,12 +4,12 @@ import random
 import midi
 
 # ensure repeatability
-random.seed(4)
-NUM_BARS = 4
+random.seed(5)
+NUM_BARS = 12
 NOTE_RANGE = [45, 47, 48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69]
 
 def main(num_bars=NUM_BARS, cantus_file='cantus_firmus.mid',
-            solution_file='solution.mid', testing=False):
+            solution_file='solution.mid', testing=True):
     csp = Csp()
     cp = [] # list of counterpoint variables
     cf = [] # list of __ variables
@@ -117,40 +117,47 @@ def main(num_bars=NUM_BARS, cantus_file='cantus_firmus.mid',
         if i%2 == 0:
             cp_pitches.append(csp.one_sol[i].domain[0].getPitch())
         else:
-            cf_pitches.append(csp.one_sol[i].domain[0].getPitch())
+            base = csp.one_sol[i].domain[0].getPitch()
+            cf_pitches.append([base, base + 4, base + 7])
+
 
     def append_note(track, pitch, velocity=70):
         on = midi.NoteOnEvent(tick=0, velocity=velocity, pitch=pitch)
         track.append(on)
-        off = midi.NoteOffEvent(tick=100, pitch=pitch)
+        off = midi.NoteOffEvent(tick=180, pitch=pitch)
         track.append(off)
 
     cantus_pattern = midi.Pattern()
     cantus_track = midi.Track()
     cantus_pattern.append(cantus_track)
     for i in range(num_bars):
-        cantus_pitch = cf_pitches[i]
+        cantus_pitch = cf_pitches[i][0]
         append_note(cantus_track, cantus_pitch)
 
     pattern = midi.Pattern()
+    pattern.make_ticks_abs()
     track_cf = midi.Track()
     track_cp = midi.Track()
     pattern.append(track_cf)
     pattern.append(track_cp)
     for i in range(num_bars):
+        for pitch in cf_pitches[i]:
+            on = midi.NoteOnEvent(tick=0, velocity=60, pitch=pitch)
+            track_cf.append(on)
+        for pitch in cf_pitches[i]:
+            off = midi.NoteOffEvent(tick=60, pitch=pitch)
+            track_cf.append(off)
         cp_pitch = cp_pitches[i]
-        cf_pitch = cf_pitches[i]
-        append_note(track_cf, cf_pitch)
-        append_note(track_cp, cp_pitch,60)
+        append_note(track_cp, cp_pitch, 60)
     eot = midi.EndOfTrackEvent(tick=1)
     track_cp.append(eot)
     track_cf.append(eot)
 
     cantus_track.append(eot)
-    midi.write_midifile(cantus_file, cantus_pattern)
+    #midi.write_midifile(cantus_file, cantus_pattern)
     midi.write_midifile(solution_file, pattern)
 
-    print('\nCantus firmus midi: ' + cantus_file)
+    #print('\nCantus firmus midi: ' + cantus_file)
     print('Solution midi: ' + solution_file)
 
 if __name__ == '__main__':
