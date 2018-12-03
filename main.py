@@ -13,34 +13,30 @@ def write_solution(one_sol, num_bars, solution_file):
     cp_pitches = []
     cf_pitches = []
     for i in range(len(one_sol)):
-        if i%2 == 0:
+        if i%2 == 0: # Note is from counterpoint
             cp_pitches.append(one_sol[i].domain[0].getPitch())
-        else:
+        else: # Note is from the cantus firmus
             base = one_sol[i].domain[0].getPitch()
             cf_pitches.append([base, base + 4, base + 7])
 
-
+    # Helper function to add a note to a track
     def append_note(track, pitch, velocity=70):
         on = midi.NoteOnEvent(tick=0, velocity=velocity, pitch=pitch)
         track.append(on)
         off = midi.NoteOffEvent(tick=180, pitch=pitch)
         track.append(off)
 
-    cantus_pattern = midi.Pattern()
-    cantus_track = midi.Track()
-    cantus_pattern.append(cantus_track)
-    for i in range(num_bars):
-        cantus_pitch = cf_pitches[i][0]
-        append_note(cantus_track, cantus_pitch)
-
+    # Initialize MIDI variables
     pattern = midi.Pattern()
-    pattern.make_ticks_abs()
     track_cf = midi.Track()
     track_cp = midi.Track()
     pattern.append(track_cf)
     pattern.append(track_cp)
+
+    # Add all cantus firmus and counterpoint pitches to the track
     for i in range(num_bars):
         for pitch in cf_pitches[i]:
+            # Keep notes in the same chord at the same point
             on = midi.NoteOnEvent(tick=0, velocity=60, pitch=pitch)
             track_cf.append(on)
         for pitch in cf_pitches[i]:
@@ -52,8 +48,6 @@ def write_solution(one_sol, num_bars, solution_file):
     track_cp.append(eot)
     track_cf.append(eot)
 
-    cantus_track.append(eot)
-    #midi.write_midifile(cantus_file, cantus_pattern)
     midi.write_midifile(solution_file, pattern)
 
     #print('\nCantus firmus midi: ' + cantus_file)
@@ -78,7 +72,7 @@ def main(num_bars=NUM_BARS, cantus_file='cantus_firmus.mid',
         print('Generating a cantus firmus over ' + str(num_bars) + ' bars')
         note_list = []
         for i in range(num_bars):
-            note_list.append(random.sample(NOTE_RANGE, 1)[0])
+            note_list.append(random.choice(NOTE_RANGE))
     else:
         note_list = [57,60,59,57]
 
@@ -90,13 +84,13 @@ def main(num_bars=NUM_BARS, cantus_file='cantus_firmus.mid',
     print(note_list)
 
     for i in range(num_bars):
-        note_list = [45, 47, 48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69]
+        cp_note_list = [45, 47, 48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69]
 
         if i != (num_bars - 2):
-            map(lambda x: cp[i].addToDomain(Note(x)), note_list)
+            map(lambda x: cp[i].addToDomain(Note(x)), cp_note_list)
         else:
-            note_list = [56, 68]
-            map(lambda x: cp[i].addToDomain(Note(x)), note_list)
+            cp_note_list = [56, 68]
+            map(lambda x: cp[i].addToDomain(Note(x)), cp_note_list)
 
     # binary constraints, p. 109 of Ovans
     for i in range(1, num_bars):
@@ -160,7 +154,7 @@ def main(num_bars=NUM_BARS, cantus_file='cantus_firmus.mid',
         csp.findASolution()
         print('Trying simulated annealing...')
         csp.simAnnealing()
-        print 'Simulated annealing returns solution with cost {}, after {} iterations'.format(csp.getCost(csp.vars), csp.iters)
+        print 'Simulated annealing returns solution with cost {}, after {} iterations.'.format(csp.getCost(csp.vars), csp.iters)
     else:
         print('Not consistent')
         return None
@@ -171,8 +165,11 @@ def main(num_bars=NUM_BARS, cantus_file='cantus_firmus.mid',
         print('No solution found')
         return None
 
-    write_solution(csp.one_sol, num_bars=NUM_BARS, solution_file=test_dir+solution_file)
-    write_solution(csp.vars, num_bars=NUM_BARS,solution_file=test_dir+sa_file)
+    write_solution(csp.one_sol, num_bars=num_bars, solution_file=test_dir+solution_file)
+    if csp.getCost(csp.vars) == 0:
+        write_solution(csp.vars, num_bars=num_bars,solution_file=test_dir+sa_file)
+    else:
+        print('Simulated annealing failed, not writing to output')
     if testing:
         return csp
 
