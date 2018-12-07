@@ -3,6 +3,7 @@ from note import Note
 import copy
 import random
 import midi
+import timeit
 
 # ensure repeatability
 random.seed(5)
@@ -70,7 +71,7 @@ def write_solution(one_sol, num_bars, solution_file, cp_chord=False, cf_chord=Tr
     print('Solution midi: ' + solution_file)
 
 def main(num_bars=NUM_BARS, cantus_file='cantus_firmus.mid',
-            solution_file='solution.mid', sa_file='simulated_annealing.mid', test_dir='', testing=False):
+            solution_file='solution.mid', sa_file='simulated_annealing.mid', test_dir='', testing=False, arc_consistency=True):
     csp = Csp()
     cp = [] # list of counterpoint variables
     cf = [] # list of __ variables
@@ -164,19 +165,62 @@ def main(num_bars=NUM_BARS, cantus_file='cantus_firmus.mid',
         cp[i+2].addToNeighbors(L)
 
 
-    test_csp = copy.deepcopy(csp)
-    if csp.makeArcConsistent():
-        print('Arc consistent - looking for a solution')
-        csp.findASolution()
-        print('Trying simulated annealing...')
-        csp.simAnnealing()
-        print 'Simulated annealing returns solution with cost {}, after {} iterations.'.format(csp.getCost(csp.vars), csp.iters)
+    if arc_consistency:
+        arc_start = timeit.default_timer()
+        if csp.makeArcConsistent():
+            arc_stop = timeit.default_timer()
+            print 'Made initial arcs consistent in {} seconds.'.format(arc_stop - arc_start)
+            print('Arc consistent - looking for a solution with DFS')
+
+            sol_start = timeit.default_timer()
+            csp.findASolution()
+            sol_stop = timeit.default_timer()
+            print('Attempt to find a DFS solution finished after {} seconds.'.format(sol_stop - sol_start))
+
+            print('Trying simulated annealing...')
+            sim_start = timeit.default_timer()
+            csp.simAnnealing()
+            sim_stop = timeit.default_timer()
+            print('Completed simulated annealing after {} seconds.'.format(sim_stop - sim_start))
+            print 'Simulated annealing returns solution with cost {}, after {} iterations.'.format(csp.getCost(csp.vars), csp.iters)
+            if testing:
+                sim_trial_info = '{},{},{},{}\n'.format(num_bars, csp.getCost(csp.vars), csp.iters, sim_stop - sim_start)
+                with open('simulated_annealing_trial_info.csv', 'a+') as f:
+                    f.write(sim_trial_info)
+                f.closed
+
+        else:
+            arc_stop = timeit.default_timer()
+            print 'Failed to make initial arcs consistent after {} seconds.'.format(arc_stop - arc_start)
+            print('Not consistent')
+            return None
     else:
-        print('Not consistent')
-        return None
+        print('Looking for a solution with DFS')
+        sol_start = timeit.default_timer()
+        csp.findASolution()
+        sol_stop = timeit.default_timer()
+        print('Attempt to find a DFS solution finished after {} seconds.'.format(sol_stop - sol_start))
+
+        print('Trying simulated annealing...')
+        sim_start = timeit.default_timer()
+        csp.simAnnealing()
+        sim_stop = timeit.default_timer()
+        print('Completed simulated annealing after {} seconds.'.format(sim_stop - sim_start))
+        print 'Simulated annealing returns solution with cost {}, after {} iterations.'.format(csp.getCost(csp.vars), csp.iters)
+        if testing:
+            sim_trial_info = '{},{},{},{}\n'.format(num_bars, csp.getCost(csp.vars), csp.iters, sim_stop - sim_start)
+            with open('simulated_annealing_trial_info.csv', 'a+') as f:
+                f.write(sim_trial_info)
+            f.closed
 
     if csp.one_sol is not None:
-        print('Found {} solutions with arc consistency! Expanded {} nodes with {} backtracks'.format(csp.getSol(), csp.getNodes(), csp.getBts()))
+        initArc = 'with' if arc_consistency else 'without'
+        print('Found {} solutions {} arc consistency! Expanded {} nodes with {} backtracks'.format(csp.getSol(), initArc, csp.getNodes(), csp.getBts()))
+        if testing:
+            dfs_trial_info = '{},{},{},{}\n'.format(num_bars, csp.getNodes(), csp.getBts(), sol_stop - sol_start)
+            with open('dfs_trial_info.csv', 'a+') as f:
+                f.write(dfs_trial_info)
+            f.closed
     else:
         print('No solution found')
         return None
