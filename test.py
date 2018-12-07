@@ -4,7 +4,7 @@ import timeit
 
 
 # Number of bars to test
-bars_range = [24, 8, 12, 24]
+bars_range = [4, 8, 12, 24]
 # Number of trials for each bar number
 num_trials = 4
 # Directory to write midi test files
