@@ -1,3 +1,4 @@
+from collections import deque
 import copy
 import math
 import random
@@ -269,6 +270,68 @@ class Csp(object):
 
     def getNodes(self):
         return self.nodes
+
+    def createArcQueue(self):
+        out = deque([]) # out should be a queue of arcs (var_1, var_2, constraint)
+        for var in self.vars:
+            for neighbor in var.neighbors:
+                out.append((var, neighbor.node.var, neighbor.label))
+        #print(out)
+        return out
+
+    def AC3(self):
+        saved_vars = {}
+        for j in range(len(self.vars)):
+            saved_vars[j] = copy.deepcopy(self.vars[j].getDomain())
+
+        queue = self.createArcQueue()
+
+        success = True
+        while len(queue) > 0:
+            (x_i, x_j, constraint) = queue.popleft()
+            if self.revise(x_i, x_j, constraint):
+                if len(x_i.domain) == 0:
+                    success = False
+                    break
+                for link in x_i.neighbors:
+                    if link.node.var != x_j:
+                        queue.append((x_i, link.node.var, link.label))
+
+        # to_check = list(range(len(self.vars)))
+        # for id in to_check:
+        #     for neighbor in self.vars[id].neighbors:
+        #         for val in self.vars[id].domain:
+        #             satisfied = False
+        #             for val2 in neighbor.node.var:
+        #                 if neighbor.label(val, val2):
+        #                     satisfied=True
+        #                     break
+        #             if not satisfied:
+        #                 self.vars[i].domain.remove(val)
+
+        if not success:
+            for j in range(len(self.vars)):
+                self.vars[j].setDomain(saved_vars[j])
+
+        return success
+
+    def revise(self, x_i, x_j, constraint):
+        revised = False
+        for val in x_i.domain:
+            satisfied = False
+            for val2 in x_j.domain:
+                if constraint(val, val2):
+                    satisfied = True
+                    break
+            if not satisfied:
+                x_i.domain.remove(val)
+                revised=True
+        return revised
+
+
+
+
+
 
     def makeArcConsistent(self):
         for i in range(len(self.vars)):
