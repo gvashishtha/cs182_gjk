@@ -1,5 +1,5 @@
 from util import Constraint, Constraint3, Csp, Link, Variable
-from note import Note
+from note import Note, write_solution
 import copy
 import random
 import midi
@@ -9,72 +9,12 @@ random.seed(5)
 NUM_BARS = 4
 NOTE_RANGE = [45, 47, 48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69]
 
-def write_solution(one_sol, num_bars, solution_file, cp_chord=False, cf_chord=True):
-    cp_pitches = []
-    cf_pitches = []
-    for i in range(len(one_sol)):
-        if i%2 == 0: # Note is from counterpoint
-            base = one_sol[i].domain[0].getPitch()
-            if cp_chord:
-                cp_pitches.append([base, base+4, base+7])
-            else:
-                cp_pitches.append([one_sol[i].domain[0].getPitch()])
-        else: # Note is from the cantus firmus
-            base = one_sol[i].domain[0].getPitch()
-            if cf_chord:
-                cf_pitches.append([base, base + 4, base + 7])
-            else:
-                cf_pitches.append([base])
-    # Helper function to add a note to a track
-    def append_note(track, pitch, velocity=70):
-        on = midi.NoteOnEvent(tick=0, velocity=velocity, pitch=pitch)
-        track.append(on)
-        off = midi.NoteOffEvent(tick=180, pitch=pitch)
-        track.append(off)
-
-    # Initialize MIDI variables
-    pattern = midi.Pattern()
-    track_cf = midi.Track()
-    track_cp = midi.Track()
-    pattern.append(track_cf)
-    pattern.append(track_cp)
-
-    # Add all cantus firmus and counterpoint pitches to the track
-    for i in range(num_bars):
-        for pitch in cf_pitches[i]:
-            # Keep notes in the same chord at the same point
-            on = midi.NoteOnEvent(tick=0, velocity=60, pitch=pitch)
-            track_cf.append(on)
-        off = midi.NoteOffEvent(tick=180, pitch=cf_pitches[i][0])
-        track_cf.append(off)
-        for pitch in cf_pitches[i][1:]:
-            off = midi.NoteOffEvent(tick=0, pitch=pitch)
-            track_cf.append(off)
-        for pitch in cp_pitches[i]:
-            on = midi.NoteOnEvent(tick=0, velocity=60, pitch=pitch)
-            track_cp.append(on)
-        off = midi.NoteOffEvent(tick=180, pitch = cp_pitches[i][0])
-        track_cp.append(off)
-        for pitch in cp_pitches[i][1:]:
-            off = midi.NoteOffEvent(tick=0, pitch=pitch)
-            track_cp.append(off)
-        #cp_pitch = cp_pitches[i]
-        #append_note(track_cp, cp_pitch, 60)
-    eot = midi.EndOfTrackEvent(tick=1)
-    track_cp.append(eot)
-    track_cf.append(eot)
-
-    midi.write_midifile(solution_file, pattern)
-
-    #print('\nCantus firmus midi: ' + cantus_file)
-    print('Solution midi: ' + solution_file)
-
 def main(num_bars=NUM_BARS, cantus_file='cantus_firmus.mid',
             solution_file='solution.mid', sa_file='simulated_annealing.mid', test_dir='', testing=False):
     csp = Csp()
     cp = [] # list of counterpoint variables
     cf = [] # list of __ variables
-    binary = [] # list of binary constraints
+    binary = [] # list of Constraint objects
     for i in range(num_bars):
         cp.append(Variable('cp' + str(i)))
         csp.addToVariables(cp[i])
@@ -89,6 +29,7 @@ def main(num_bars=NUM_BARS, cantus_file='cantus_firmus.mid',
         note_list = []
         for i in range(num_bars):
             note_list.append(random.choice(NOTE_RANGE))
+
     else:
         note_list = [57,60,59,57]
 
@@ -163,9 +104,8 @@ def main(num_bars=NUM_BARS, cantus_file='cantus_firmus.mid',
     #     L.setLabel(Note.step)
     #     cp[i+2].addToNeighbors(L)
 
-
-    test_csp = copy.deepcopy(csp)
-    if csp.makeArcConsistent():
+    if csp.AC3():
+    #if csp.makeArcConsistent():
         print('Arc consistent - looking for a solution')
         csp.findASolution()
         print('Trying simulated annealing...')
