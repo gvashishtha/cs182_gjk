@@ -138,30 +138,30 @@ def main(num_bars=NUM_BARS, cantus_file='cantus_firmus.mid',
     cf[num_bars-1].addToNeighbors(L)
 
     # the Ternary constraints ...
-    for i in range(0, num_bars - 2):
-        ternary = Constraint3()
-        ternary.setVariable(cp[i+1])
-        ternary.setVariable2(cp[i+2])
-        L = Link()
-        L.setNode(ternary)
-        L.setLabel(Note.skip)
-        cp[i].addToNeighbors(L)
-
-        ternary = Constraint3()
-        ternary.setVariable(cp[i])
-        ternary.setVariable2(cp[i+2])
-        L = Link()
-        L.setNode(ternary)
-        L.setLabel(Note.skipped)
-        cp[i+1].addToNeighbors(L)
-
-        ternary = Constraint3()
-        ternary.setVariable(cp[i])
-        ternary.setVariable2(cp[i+1])
-        L = Link()
-        L.setNode(ternary)
-        L.setLabel(Note.step)
-        cp[i+2].addToNeighbors(L)
+    # for i in range(0, num_bars - 2):
+    #     ternary = Constraint3()
+    #     ternary.setVariable(cp[i+1])
+    #     ternary.setVariable2(cp[i+2])
+    #     L = Link()
+    #     L.setNode(ternary)
+    #     L.setLabel(Note.skip)
+    #     cp[i].addToNeighbors(L)
+    #
+    #     ternary = Constraint3()
+    #     ternary.setVariable(cp[i])
+    #     ternary.setVariable2(cp[i+2])
+    #     L = Link()
+    #     L.setNode(ternary)
+    #     L.setLabel(Note.skipped)
+    #     cp[i+1].addToNeighbors(L)
+    #
+    #     ternary = Constraint3()
+    #     ternary.setVariable(cp[i])
+    #     ternary.setVariable2(cp[i+1])
+    #     L = Link()
+    #     L.setNode(ternary)
+    #     L.setLabel(Note.step)
+    #     cp[i+2].addToNeighbors(L)
 
 
     test_csp = copy.deepcopy(csp)
