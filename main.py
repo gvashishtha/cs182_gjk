@@ -78,14 +78,16 @@ def main(num_bars=NUM_BARS, cantus_file='cantus_firmus.mid',
     L.setLabel(Note.perfectHarmonic)
     cf[num_bars-1].addToNeighbors(L)
 
+    test_csp = copy.deepcopy(csp)
+
     if csp.AC3():
     #if csp.makeArcConsistent():
         print('Arc consistent - looking for a solution')
         csp.backtracking_search()
-        print 'AC3 etc returns {}'.format(csp.one_sol)
+        #print 'AC3 etc returns {}'.format(csp.one_sol)
         print('Trying simulated annealing...')
-        csp.simAnnealing()
-        print 'Simulated annealing returns solution with cost {}, after {} iterations.'.format(csp.getCost(csp.vars), csp.iters)
+        test_csp.simAnnealing()
+        print 'Simulated annealing returns with cost {}, after {} iterations.'.format(test_csp.getCost(test_csp.vars), test_csp.iters)
     else:
         print('Not consistent')
         return None
@@ -97,8 +99,8 @@ def main(num_bars=NUM_BARS, cantus_file='cantus_firmus.mid',
         return None
 
     write_solution(csp.one_sol, num_bars=num_bars, solution_file=test_dir+solution_file)
-    if csp.getCost(csp.vars) == 0:
-        write_solution(csp.vars, num_bars=num_bars,solution_file=test_dir+sa_file)
+    if test_csp.getCost(test_csp.vars) == 0:
+        write_solution(test_csp.vars, num_bars=num_bars,solution_file=test_dir+sa_file)
     else:
         print('Simulated annealing failed, not writing to output')
     if testing:
