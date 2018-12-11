@@ -1,8 +1,11 @@
-from util import Constraint, Constraint3, Csp, Link, Variable
 from note import Note, write_solution
+from optparse import OptionParser
+from util import Constraint, Constraint3, Csp, Link, Variable
 import copy
-import random
+import logging
 import midi
+import random
+import sys
 
 # ensure repeatability
 random.seed(5)
@@ -10,7 +13,11 @@ NUM_BARS = 4
 NOTE_RANGE = [45, 47, 48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69]
 
 def main(num_bars=NUM_BARS, cantus_file='cantus_firmus.mid',
-            solution_file='solution.mid', sa_file='simulated_annealing.mid', test_dir='', testing=False):
+            solution_file='solution.mid', sa_file='simulated_annealing.mid', test_dir='', testing=False, options=None):
+
+    if options.preset_song != '':
+        print 'options.preset_song is {}'.format(options.preset_song)
+
     csp = Csp()
     cp = [] # list of counterpoint variables
     cf = [] # list of __ variables
@@ -106,5 +113,65 @@ def main(num_bars=NUM_BARS, cantus_file='cantus_firmus.mid',
     if testing:
         return csp
 
-if __name__ == '__main__':
-    main()
+def configure_logging(loglevel):
+    numeric_level = getattr(logging, loglevel.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % loglevel)
+
+    root_logger = logging.getLogger('')
+    strm_out = logging.StreamHandler(sys.__stdout__)
+    strm_out.setFormatter(logging.Formatter('%(message)s'))
+    root_logger.setLevel(numeric_level)
+    root_logger.addHandler(strm_out)
+
+def read_options(args):
+    usage_msg = "Usage:  %prog [options]"
+    parser = OptionParser(usage=usage_msg)
+
+    def usage(msg):
+        print "Error: %s\n" % msg
+        parser.print_help()
+        sys.exit()
+
+    parser.add_option("--loglevel",
+                      dest="loglevel", default="info",
+                      help="Set the logging level: 'debug' or 'info'")
+
+    parser.add_option("--num_bars",
+                      dest="num_bars", default=4, type="int",
+                      help="How long is the song?")
+
+    parser.add_option("--cantus_file",
+                      dest="cantus_file", default='cantus_firmus.mid', type="string",
+                      help="Cantus Firmus Filename")
+
+    parser.add_option("--solution_file",
+                      dest="solution_file", default='solution.mid', type="string",
+                      help="Solution filename")
+
+    parser.add_option("--sa_file",
+                      dest="sa_file", default='simulated_annealing.mid', type="string",
+                      help="Simulated annealing filename")
+
+    parser.add_option("--test_dir",
+                      dest="test_dir", default='', type="string",
+                      help="Test directory")
+
+    parser.add_option("--preset_song",
+                      dest="preset_song", default='', type="string",
+                      help="Set the preset song")
+
+    parser.add_option("-t",
+                      action="store_true", dest="testing", default=True)
+
+    parser.add_option("-n",
+                      action="store_false", dest="testing")
+
+    (options, args) = parser.parse_args()
+    configure_logging(options.loglevel)
+
+    return main(options=options)
+
+
+if __name__ == "__main__":
+    read_options(sys.argv)
