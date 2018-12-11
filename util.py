@@ -1,4 +1,5 @@
 from collections import deque
+from itertools import count
 import copy
 import math
 import random
@@ -140,10 +141,13 @@ class Link(object):
         self.label = label
 
 class Variable(object):
+    _ids = count(0)
+
     def __init__(self, name):
         self.domain = [] # a list of objects. length 0 -> unsatisfiable
         self.neighbors = [] # collection of links
         self.name = name
+        self.id = next(self._ids)
 
     def addToDomain(self, obj):
         self.domain.append(obj)
@@ -190,9 +194,11 @@ class Csp(object):
         self.bts = self.nodes = self.sol = self.iters = 0
         self.one_sol = None
         self.initial_domains = {}
+        self.var_index = {}
 
     def addToVariables(self, var):
         self.vars.append(var)
+        self.var_index[var.id] = var
 
     def findSolutions2(self, index, numVariables):
         if index == numVariables:
@@ -271,6 +277,8 @@ class Csp(object):
     def getNodes(self):
         return self.nodes
 
+
+    # See p. 209 of AIAMA for AC-3 pseudocode
     def createArcQueue(self):
         out = deque([]) # out should be a queue of arcs (var_1, var_2, constraint)
         for var in self.vars:
@@ -328,8 +336,63 @@ class Csp(object):
                 revised=True
         return revised
 
+    def backtracking_search(self):
+        return self.backtrack()
 
+    def selectUnassignedVariable(self):
+        # assume assignment is a set containing indices of assigned vars
+        for var in self.vars:
+            if len(var.domain) > 1:
+                return var
+        return None
 
+    def orderDomainValues(self, var):
+        return var.getDomain()
+
+    def backtrack(self):
+        saved_vars = {}
+        for j in range(len(self.vars)): # save variables to restore them later
+            saved_vars[j] = copy.deepcopy(self.vars[j].getDomain())
+
+        cur_var = self.selectUnassignedVariable()
+        if cur_var is None:
+            # all variables are assigned, return
+            # print 'cur_var is None with vars {}'.format(self.vars)
+            self.one_sol = copy.deepcopy(self.vars)
+            self.sol += 1
+            return True
+
+        for val in self.orderDomainValues(cur_var):
+            cur_var.setDomain([val])
+            self.nodes += 1
+            if self.checkConsistent():
+                inferences = self.AC3()
+                if inferences:
+                    result = self.backtrack()
+                    if result != False:
+                        return result
+            self.bts += 1 # if we reach this point, we are backtracking
+
+            for j in range(len(self.vars)): # restore variable domains
+                self.vars[j].setDomain(saved_vars[j])
+
+        return False
+
+    def checkConsistent(self):
+        # assume assignment is a set containing indices of assigned vars
+        for var in self.vars:
+            for link in var.neighbors:
+                consistent = False
+                for val in var.domain:
+                    for val2 in link.node.var.domain:
+                        if link.label(val, val2):
+                            consistent=True
+                            break
+                    if consistent:
+                        break
+                if not consistent:
+                    return False
+        return True
 
 
 

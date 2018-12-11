@@ -78,36 +78,11 @@ def main(num_bars=NUM_BARS, cantus_file='cantus_firmus.mid',
     L.setLabel(Note.perfectHarmonic)
     cf[num_bars-1].addToNeighbors(L)
 
-    # the Ternary constraints ...
-    # for i in range(0, num_bars - 2):
-    #     ternary = Constraint3()
-    #     ternary.setVariable(cp[i+1])
-    #     ternary.setVariable2(cp[i+2])
-    #     L = Link()
-    #     L.setNode(ternary)
-    #     L.setLabel(Note.skip)
-    #     cp[i].addToNeighbors(L)
-    #
-    #     ternary = Constraint3()
-    #     ternary.setVariable(cp[i])
-    #     ternary.setVariable2(cp[i+2])
-    #     L = Link()
-    #     L.setNode(ternary)
-    #     L.setLabel(Note.skipped)
-    #     cp[i+1].addToNeighbors(L)
-    #
-    #     ternary = Constraint3()
-    #     ternary.setVariable(cp[i])
-    #     ternary.setVariable2(cp[i+1])
-    #     L = Link()
-    #     L.setNode(ternary)
-    #     L.setLabel(Note.step)
-    #     cp[i+2].addToNeighbors(L)
-
     if csp.AC3():
     #if csp.makeArcConsistent():
         print('Arc consistent - looking for a solution')
-        csp.findASolution()
+        csp.backtracking_search()
+        print 'AC3 etc returns {}'.format(csp.one_sol)
         print('Trying simulated annealing...')
         csp.simAnnealing()
         print 'Simulated annealing returns solution with cost {}, after {} iterations.'.format(csp.getCost(csp.vars), csp.iters)
@@ -116,7 +91,7 @@ def main(num_bars=NUM_BARS, cantus_file='cantus_firmus.mid',
         return None
 
     if csp.one_sol is not None:
-        print('Found {} solutions with arc consistency! Expanded {} nodes with {} backtracks'.format(csp.getSol(), csp.getNodes(), csp.getBts()))
+        print('Found a solution with arc consistency! Expanded {} nodes with {} backtracks'.format(csp.getNodes(), csp.getBts()))
     else:
         print('No solution found')
         return None
