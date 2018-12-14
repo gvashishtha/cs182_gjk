@@ -4,14 +4,24 @@ import timeit
 
 
 # Number of bars to test
-bars_range = [4, 8, 12, 24]
+bars_range = [4, 8, 12, 24, 48]
 # Number of trials for each bar number
-num_trials = 4
+num_trials = 20
 # Directory to write midi test files
 test_dir = 'tests/'
 
 if not os.path.exists(test_dir):
     os.makedirs(test_dir)
+
+# insert column headers for dfs trials info
+with open('dfs_trial_info.csv', 'w+') as f:
+    f.write('bars,nodes expanded,backtracks,runtime\n')
+f.closed
+
+# insert column headers for dfs trials info
+with open('simulated_annealing_trial_info.csv', 'w+') as f:
+    f.write('bars,cost,iterations,runtime\n')
+f.closed
 
 def file_name_generator(type, num_bars, trial_num):
     return type + str(num_bars) + '_bars_trial_' + str(trial_num) + '.mid'
@@ -19,7 +29,7 @@ def file_name_generator(type, num_bars, trial_num):
 # Generate composition with specified parameters. Returns runtime in seconds
 def test_generation(num_bars, cantus_file, solution_file, sa_file, test_dir):
   start = timeit.default_timer()
-  returned_csp = generate_music(num_bars=num_bars, cantus_file=cantus_file, solution_file=solution_file, sa_file=sa_file, test_dir=test_dir, testing=True)
+  returned_csp = generate_music(num_bars=num_bars, cantus_file=cantus_file, solution_file=solution_file, sa_file=sa_file, test_dir=test_dir, testing=True, arc_consistency=True)
   if returned_csp is not None:
       assert(returned_csp.getCost(returned_csp.one_sol)==0)
   stop = timeit.default_timer()
