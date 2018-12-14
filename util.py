@@ -1,5 +1,6 @@
 from collections import deque
 from itertools import count
+import sys
 import copy
 import math
 import random
@@ -137,12 +138,21 @@ class Csp(object):
     def backtracking_search(self):
         return self.backtrack()
 
-    def selectUnassignedVariable(self):
+    def selectUnassignedVariable(self, min_rem_ordering=False):
         # assume assignment is a set containing indices of assigned vars
+        min_remaining = sys.maxint
+        min_var = None
         for var in self.vars:
-            if len(var.domain) > 1:
-                return var
-        return None
+            remaining_values = len(var.domain)
+            if remaining_values > 1 and remaining_values < min_remaining:
+                # return the first variable if not ordering by min remaining
+                if not min_rem_ordering:
+                    return var
+                else:
+                    min_remaining = remaining_values
+                    min_var = var
+
+        return min_var
 
     def orderDomainValues(self, var):
         return var.getDomain()
