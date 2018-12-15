@@ -6,14 +6,22 @@ import logging
 import midi
 import random
 import sys
+import timeit
 
 # ensure repeatability
 random.seed(5)
 NUM_BARS = 4
 NOTE_RANGE = [45, 47, 48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69]
 
-def main(num_bars=NUM_BARS, cantus_file='cantus_firmus.mid',
-            solution_file='solution.mid', sa_file='simulated_annealing.mid', test_dir='', testing=False, options=None):
+def main(options=None):
+    num_bars = options.num_bars
+    cantus_file = options.cantus_file
+    solution_file = options.solution_file
+    sa_file = options.sa_file
+    test_dir = options.test_dir
+    testing = options.testing
+
+    arc_consistency = options.arc_consistency
 
     if options.preset_song != '':
         print 'options.preset_song is {}'.format(options.preset_song)
@@ -36,7 +44,6 @@ def main(num_bars=NUM_BARS, cantus_file='cantus_firmus.mid',
         note_list = []
         for i in range(num_bars):
             note_list.append(random.choice(NOTE_RANGE))
-
     else:
         note_list = [57,60,59,57]
 
@@ -87,20 +94,51 @@ def main(num_bars=NUM_BARS, cantus_file='cantus_firmus.mid',
 
     test_csp = copy.deepcopy(csp)
 
-    if csp.AC3():
-    #if csp.makeArcConsistent():
-        print('Arc consistent - looking for a solution')
-        csp.backtracking_search()
-        #print 'AC3 etc returns {}'.format(csp.one_sol)
-        print('Trying simulated annealing...')
-        test_csp.simAnnealing()
-        print 'Simulated annealing returns with cost {}, after {} iterations.'.format(test_csp.getCost(test_csp.vars), test_csp.iters)
+    if arc_consistency:
+        arc_start = timeit.default_timer()
+        if csp.AC3():
+            arc_stop = timeit.default_timer()
+            print 'Made initial arcs consistent in {} seconds.'.format(arc_stop - arc_start)
+            print 'Arc consistent - looking for a solution with DFS'
+
+            sol_start = timeit.default_timer()
+            csp.backtracking_search()
+            sol_stop = timeit.default_timer()
+
+            print('Trying simulated annealing...')
+            sim_start = timeit.default_timer()
+            test_csp.simAnnealing()
+            sim_stop = timeit.default_timer()
+            print 'Completed simulated annealing after {} seconds.'.format(sim_stop - sim_start)
+            print 'Simulated annealing returns with cost {}, after {} iterations.'.format(test_csp.getCost(test_csp.vars), test_csp.iters)
+        else:
+            arc_stop = timeit.default_timer()
+            print 'Failed to make initial arcs consistent after {} seconds.'.format(arc_stop - arc_start)
+            print('Not consistent')
+            return None
     else:
-        print('Not consistent')
-        return None
+        sol_start = timeit.default_timer()
+        csp.backtracking_search()
+        sol_stop = timeit.default_timer()
+        print('Attempt to find a DFS solution finished after {} seconds.'.format(sol_stop - sol_start))
+
+        print('Trying simulated annealing...')
+        sim_start = timeit.default_timer()
+        test_csp.simAnnealing()
+        sim_stop = timeit.default_timer()
+        print 'Completed simulated annealing after {} seconds.'.format(sim_stop - sim_start)
+        print 'Simulated annealing returns with cost {}, after {} iterations.'.format(test_csp.getCost(test_csp.vars), test_csp.iters)
+        print('Looking for a solution with DFS')
 
     if csp.one_sol is not None:
         print('Found a solution with arc consistency! Expanded {} nodes with {} backtracks'.format(csp.getNodes(), csp.getBts()))
+
+        # Log stats in csv file for testing
+        if testing:
+            dfs_trial_info = '{},{},{},{}\n'.format(num_bars, csp.getNodes(), csp.getBts(), sol_stop - sol_start)
+            with open('dfs_trial_info.csv', 'a+') as f:
+                f.write(dfs_trial_info)
+            f.closed
     else:
         print('No solution found')
         return None
@@ -108,6 +146,13 @@ def main(num_bars=NUM_BARS, cantus_file='cantus_firmus.mid',
     write_solution(csp.one_sol, num_bars=num_bars, solution_file=test_dir+solution_file)
     if test_csp.getCost(test_csp.vars) == 0:
         write_solution(test_csp.vars, num_bars=num_bars,solution_file=test_dir+sa_file)
+
+        # Log stats in csv file for testing
+        if testing:
+            sim_trial_info = '{},{},{},{}\n'.format(num_bars, test_csp.getCost(test_csp.vars), test_csp.iters, sim_stop - sim_start)
+            with open('simulated_annealing_trial_info.csv', 'a+') as f:
+                f.write(sim_trial_info)
+            f.closed
     else:
         print('Simulated annealing failed, not writing to output')
     if testing:
@@ -160,6 +205,9 @@ def read_options(args):
     parser.add_option("--preset_song",
                       dest="preset_song", default='', type="string",
                       help="Set the preset song")
+
+    parser.add_option("--nac3",
+                      action="store_false", dest="arc_consistency", default=True)
 
     parser.add_option("-t",
                       action="store_true", dest="testing", default=True)
