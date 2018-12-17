@@ -59,7 +59,7 @@ def write_solution(one_sol, num_bars, solution_file, cp_chord=False, cf_chord=Tr
     pattern.append(track_cf)
     pattern.append(track_cp)
 
-    notelengths = [60, 120, 180, 240, 300]
+    notelengths = [60, 120, 180, 240]
 
     # Add all cantus firmus and counterpoint pitches to the track
     for i in range(num_bars):
