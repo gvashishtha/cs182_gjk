@@ -171,9 +171,9 @@ def main(options=None):
         print('No solution found')
         return None
 
-    write_solution(csp.one_sol, num_bars=num_bars, solution_file=test_dir+solution_file)
+    write_solution(csp.one_sol, num_bars=num_bars, solution_file=test_dir + '/' + solution_file)
     if test_csp.getCost(test_csp.vars) == 0:
-        write_solution(test_csp.vars, num_bars=num_bars,solution_file=test_dir+sa_file)
+        write_solution(test_csp.vars, num_bars=num_bars,solution_file=test_dir + '/' + sa_file)
 
         # Log stats in csv file for testing
         if testing:
