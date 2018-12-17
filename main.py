@@ -11,7 +11,7 @@ import timeit
 # ensure repeatability
 random.seed(5)
 NUM_BARS = 4
-NOTE_RANGE = [45, 47, 48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69]
+NOTE_RANGE = range(30, 100)
 
 def main(options=None):
     num_bars = options.num_bars
@@ -21,15 +21,38 @@ def main(options=None):
     test_dir = options.test_dir
     testing = options.testing
 
+    song_list = ['mary', 'ariana', 'shootingstar']
+
     arc_consistency = options.arc_consistency
 
-    if options.preset_song != '':
+    if options.preset_song in song_list:
         print 'options.preset_song is {}'.format(options.preset_song)
+    elif options.preset_song != '':
+    	print 'preset song not found, proceeding with default'
 
     csp = Csp()
     cp = [] # list of counterpoint variables
     cf = [] # list of __ variables
     binary = [] # list of Constraint objects
+
+    if options.preset_song == song_list[0]:
+    	note_list = [64, 62, 60, 62, 64, 64, 64, 62, 62, 62, 64, 67, 67, 64, 62, \
+					60, 62, 64, 64, 64, 64, 62, 62, 64, 62, 60]
+    	num_bars = len(note_list)
+    elif options.preset_song == song_list[1]:
+    	num_bars = 8
+    	note_list = [69, 67, 66, 67, 66, 64, 66, 64]
+    elif options.preset_song == song_list[2]:
+    	num_bars = 10
+    	note_list = [71, 71, 72, 67, 64, 71, 71, 72, 67, 64]
+    elif testing:
+        print('Generating a cantus firmus over ' + str(num_bars) + ' bars')
+        note_list = []
+        for i in range(num_bars):
+            note_list.append(random.choice(NOTE_RANGE))
+    else:
+        note_list = [57,60,59,57] # default
+
     for i in range(num_bars):
         cp.append(Variable('cp' + str(i)))
         csp.addToVariables(cp[i])
@@ -39,14 +62,6 @@ def main(options=None):
         cf.append(Variable('cf' + str(i)))
         csp.addToVariables(cf[i])
 
-    if testing:
-        print('Generating a cantus firmus over ' + str(num_bars) + ' bars')
-        note_list = []
-        for i in range(num_bars):
-            note_list.append(random.choice(NOTE_RANGE))
-    else:
-        note_list = [57,60,59,57]
-
     for i in range(len(note_list)):
         note = Note(note_list[i])
         cf[i].addToDomain(note)
@@ -55,12 +70,12 @@ def main(options=None):
     print(note_list)
 
     for i in range(num_bars):
-        cp_note_list = [45, 47, 48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69]
-
+        cp_note_list = range(30, 100)
+        
         if i != (num_bars - 2):
             map(lambda x: cp[i].addToDomain(Note(x)), cp_note_list)
         else:
-            cp_note_list = [56, 68]
+            cp_note_list = range(60, 70)
             map(lambda x: cp[i].addToDomain(Note(x)), cp_note_list)
 
     # binary constraints, p. 109 of Ovans
