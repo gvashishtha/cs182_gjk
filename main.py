@@ -90,22 +90,31 @@ def main(options=None):
         L.setLabel(Note.melodic)
         cp[i-1].addToNeighbors(L)
 
+        # extra constraint!!!!
+        if i != num_bars - 1: 
+		    L = Link()
+		    L.setNode(binary[i+1])
+		    L.setLabel(Note.harmonic)
+		    cp[i].addToNeighbors(L)
+
     L = Link()
     L.setNode(binary[0])
     L.setLabel(Note.perfectCfHarmonic)
     cf[0].addToNeighbors(L)
 
+    # harmonic constraints for each cantus firmus note
     for i in range(1, num_bars-2):
         L = Link()
         L.setNode(binary[i])
         L.setLabel(Note.harmonic)
         cf[i].addToNeighbors(L)
 
-    # no harmonic constraint 2nd to last bar
-    L = Link()
-    L.setNode(binary[num_bars - 1])
-    L.setLabel(Note.perfectHarmonic)
-    cf[num_bars-1].addToNeighbors(L)
+    # perfect harmonic constraints in last two bars
+    for i in range(num_bars-2, num_bars):
+        L = Link()
+        L.setNode(binary[i])
+        L.setLabel(Note.perfectHarmonic)
+        cf[i].addToNeighbors(L)
 
     test_csp = copy.deepcopy(csp)
 
