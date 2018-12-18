@@ -18,18 +18,45 @@ def main(options=None):
     cantus_file = options.cantus_file
     solution_file = options.solution_file
     sa_file = options.sa_file
+
     test_dir = options.test_dir
     testing = options.testing
+    dfs_csv = options.dfs_csv
+    sa_csv = options.sa_csv
+
+    song_list = ['mary', 'ariana', 'shootingstar']
 
     arc_consistency = options.arc_consistency
+    extra_harmonic = options.extra_harmonic
 
-    if options.preset_song != '':
+    if options.preset_song in song_list:
         print 'options.preset_song is {}'.format(options.preset_song)
+    elif options.preset_song != '':
+    	print 'preset song not found, proceeding with default'
 
     csp = Csp()
     cp = [] # list of counterpoint variables
     cf = [] # list of __ variables
     binary = [] # list of Constraint objects
+
+    if options.preset_song == song_list[0]:
+    	note_list = [64, 62, 60, 62, 64, 64, 64, 62, 62, 62, 64, 67, 67, 64, 62, \
+					60, 62, 64, 64, 64, 64, 62, 62, 64, 62, 60]
+    	num_bars = len(note_list)
+    elif options.preset_song == song_list[1]:
+    	num_bars = 8
+    	note_list = [69, 67, 66, 67, 66, 64, 66, 64]
+    elif options.preset_song == song_list[2]:
+    	num_bars = 10
+    	note_list = [71, 71, 72, 67, 64, 71, 71, 72, 67, 64]
+    elif testing:
+        print('Generating a cantus firmus over ' + str(num_bars) + ' bars')
+        note_list = []
+        for i in range(num_bars):
+            note_list.append(random.choice(NOTE_RANGE))
+    else:
+        note_list = [57,60,59,57] # default
+
     for i in range(num_bars):
         cp.append(Variable('cp' + str(i)))
         csp.addToVariables(cp[i])
@@ -39,14 +66,6 @@ def main(options=None):
         cf.append(Variable('cf' + str(i)))
         csp.addToVariables(cf[i])
 
-    if testing:
-        print('Generating a cantus firmus over ' + str(num_bars) + ' bars')
-        note_list = []
-        for i in range(num_bars):
-            note_list.append(random.choice(NOTE_RANGE))
-    else:
-        note_list = [57,60,59,57]
-
     for i in range(len(note_list)):
         note = Note(note_list[i])
         cf[i].addToDomain(note)
@@ -55,12 +74,12 @@ def main(options=None):
     print(note_list)
 
     for i in range(num_bars):
-        cp_note_list = [45, 47, 48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69]
-
+        cp_note_list = range(30, 100)
+        
         if i != (num_bars - 2):
             map(lambda x: cp[i].addToDomain(Note(x)), cp_note_list)
         else:
-            cp_note_list = [56, 68]
+            cp_note_list = range(60, 70)
             map(lambda x: cp[i].addToDomain(Note(x)), cp_note_list)
 
     # binary constraints, p. 109 of Ovans
@@ -75,22 +94,31 @@ def main(options=None):
         L.setLabel(Note.melodic)
         cp[i-1].addToNeighbors(L)
 
+        """# extra constraint!!!!
+        if extra_harmonic and i != num_bars - 1:
+		    L = Link()
+		    L.setNode(binary[i+1])
+		    L.setLabel(Note.harmonic)
+		    cp[i].addToNeighbors(L)"""
+
     L = Link()
     L.setNode(binary[0])
     L.setLabel(Note.perfectCfHarmonic)
     cf[0].addToNeighbors(L)
 
+    # harmonic constraints for each cantus firmus note
     for i in range(1, num_bars-2):
         L = Link()
         L.setNode(binary[i])
         L.setLabel(Note.harmonic)
         cf[i].addToNeighbors(L)
 
-    # no harmonic constraint 2nd to last bar
-    L = Link()
-    L.setNode(binary[num_bars - 1])
-    L.setLabel(Note.perfectHarmonic)
-    cf[num_bars-1].addToNeighbors(L)
+    # perfect harmonic constraints in last two bars
+    for i in range(num_bars-2, num_bars):
+        L = Link()
+        L.setNode(binary[i])
+        L.setLabel(Note.perfectHarmonic)
+        cf[i].addToNeighbors(L)
 
     test_csp = copy.deepcopy(csp)
 
@@ -136,21 +164,21 @@ def main(options=None):
         # Log stats in csv file for testing
         if testing:
             dfs_trial_info = '{},{},{},{}\n'.format(num_bars, csp.getNodes(), csp.getBts(), sol_stop - sol_start)
-            with open('dfs_trial_info.csv', 'a+') as f:
+            with open(dfs_csv, 'a+') as f:
                 f.write(dfs_trial_info)
             f.closed
     else:
         print('No solution found')
         return None
 
-    write_solution(csp.one_sol, num_bars=num_bars, solution_file=test_dir+solution_file)
+    write_solution(csp.one_sol, num_bars=num_bars, solution_file=test_dir + '/' + solution_file)
     if test_csp.getCost(test_csp.vars) == 0:
-        write_solution(test_csp.vars, num_bars=num_bars,solution_file=test_dir+sa_file)
+        write_solution(test_csp.vars, num_bars=num_bars,solution_file=test_dir + '/' + sa_file)
 
         # Log stats in csv file for testing
         if testing:
             sim_trial_info = '{},{},{},{}\n'.format(num_bars, test_csp.getCost(test_csp.vars), test_csp.iters, sim_stop - sim_start)
-            with open('simulated_annealing_trial_info.csv', 'a+') as f:
+            with open(sa_csv, 'a+') as f:
                 f.write(sim_trial_info)
             f.closed
     else:
@@ -198,8 +226,16 @@ def read_options(args):
                       dest="sa_file", default='simulated_annealing.mid', type="string",
                       help="Simulated annealing filename")
 
+    parser.add_option("--dfs_csv",
+                      dest="dfs_csv", default='dfs_trial_info.csv', type="string",
+                      help="CSV file output for DFS testing stats")
+
+    parser.add_option("--sa_csv",
+                      dest="sa_csv", default='simulated_annealing_trial_info.csv', type="string",
+                      help="CSV file output for simulated annealing testing stats")
+
     parser.add_option("--test_dir",
-                      dest="test_dir", default='', type="string",
+                      dest="test_dir", default='.', type="string",
                       help="Test directory")
 
     parser.add_option("--preset_song",
@@ -208,6 +244,9 @@ def read_options(args):
 
     parser.add_option("--nac3",
                       action="store_false", dest="arc_consistency", default=True)
+
+    parser.add_option("--neh",
+                      action="store_false", dest="extra_harmonic", default=True)
 
     parser.add_option("-t",
                       action="store_true", dest="testing", default=True)
