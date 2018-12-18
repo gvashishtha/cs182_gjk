@@ -257,7 +257,6 @@ def read_options(args):
     parser.add_option("--non-random",
                       action="store_false", dest="random", default=True)
 
-
     (options, args) = parser.parse_args()
     configure_logging(options.loglevel)
 

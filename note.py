@@ -3,7 +3,7 @@ note.py
 Implements the Note class from Note.m in page 102 of Ovans and Cercone (1990)
 
 """
-import midi 
+import midi
 import random
 
 UNISON = 0
@@ -39,9 +39,9 @@ def write_solution(one_sol, num_bars, solution_file, cp_chord=False, cf_chord=Tr
         else: # Note is from the cantus firmus
             base = one_sol[i].domain[0].getPitch()
             if cf_chord:
-                if i == num_bars*2 - 3: 
+                if i == num_bars*2 - 3:
                     cf_pitches.append([base, base-4, base-7, base-12])
-                else: 
+                else:
                     cf_pitches.append([base, base-3, base-7, base-12])
             else:
                 cf_pitches.append([base])
@@ -65,7 +65,7 @@ def write_solution(one_sol, num_bars, solution_file, cp_chord=False, cf_chord=Tr
     for i in range(num_bars):
         if random_length:
             length = random.choice(notelengths)
-        else: 
+        else:
             length = 180
         for pitch in cf_pitches[i]:
             # Keep notes in the same chord at the same point
@@ -144,74 +144,6 @@ class Note(object):
         self.checks += 1
         interval = abs(self.pitch - other.getPitch())
         return ((interval <= MINOR6TH) and interval != TRITONE)
-    @staticmethod
-    def noThree(self, other, other2):
-        self.checks += 1
-        return (self.pitch != other.getPitch() or self.pitch != other2.getPitch())
-
-    @staticmethod
-    def skip(self, other, other2):
-        self.checks += 1
-        interval = abs(self.pitch-other.getPitch())
-        if interval >= MINOR3RD:
-            return ((abs(other.getPitch()-other2.getPitch()) <= MAJOR2ND) and self.noThree(self,other, other2))
-        else:
-            return self.noThree(self,other, other2)
-
-    @staticmethod
-    def skipped(self, other, other2):
-        self.checks += 1
-        interval = abs(self.pitch -other.getPitch())
-        if interval >= MINOR3RD:
-            return ((abs(self.pitch-other2.getPitch()) <= MAJOR2ND) and self.noThree(self, other, other2))
-        else:
-            return self.noThree(self, other, other2)
-
-    @staticmethod
-    def step(self, other, other2):
-        self.checks += 1
-        interval = abs(self.pitch - other2.getPitch())
-
-        if interval <= MAJOR2ND:
-            return self.noThree(self, other, other2)
-        else:
-            return ((abs(other.getPitch()-other2.getPitch()) < MINOR3RD) and self.noThree(self, other, other2))
-
-    @staticmethod
-    def perfect(self, x1, x2):
-        interval = abs(x1-x2)
-
-        return (interval == UNISON) or interval == FIFTH or interval == OCTAVE or INTERVAL == TWELFTH
-
-    @staticmethod
-    def noParallel(self, x2, x3, x4):
-        self.checks += 2
-        if (x2.getPitch()==x4.getPitch()): # no motion
-            return True
-
-        if ((abs(x4.getPitch()-x3.getPitch())==OCTAVE) and \
-            ((abs(x4.getPitch() - x2.getPitch()) > MAJOR2ND) or\
-             (abs(self.pitch - x3.getPitch()) > MAJOR2ND))):
-             return False
-
-        if (self.perfect(x4.getPitch(), x3.getPitch())):
-            return ((float(self.pitch - x3.getPitch())/float(x2.getPitch()-x4.getPitch())) <= 0.0)
-        else:
-            return True
-
-    @staticmethod
-    def noPerfect(self, x2, x3, x4):
-        self.checks += 2
-        if (self.pitch == x2.getPitch()):
-            return True
-
-        if (abs(x4.getPitch()-self.pitch) == OCTAVE) and ((abs(x4.getPitch() - x3.getPitch()) > MAJOR2ND) or (abs(self.pitch - x2.getPitch()) > MAJOR2ND)):
-             return False
-
-        if (perfect(x4.getPitch(), self.pitch)):
-            return (float(x4.getPitch()-x3.getPitch())/float(self.pitch-x2.getPitch())<= 0.0)
-        else:
-            return True
 
     def getChecks(self):
         return self.checks
