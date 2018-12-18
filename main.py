@@ -75,7 +75,7 @@ def main(options=None):
 
     for i in range(num_bars):
         cp_note_list = range(30, 100)
-        
+
         if i != (num_bars - 2):
             map(lambda x: cp[i].addToDomain(Note(x)), cp_note_list)
         else:
@@ -171,9 +171,9 @@ def main(options=None):
         print('No solution found')
         return None
 
-    write_solution(csp.one_sol, num_bars=num_bars, solution_file=test_dir + '/' + solution_file)
+    write_solution(csp.one_sol, num_bars=num_bars, solution_file=test_dir + '/' + solution_file, random_length=options.random)
     if test_csp.getCost(test_csp.vars) == 0:
-        write_solution(test_csp.vars, num_bars=num_bars,solution_file=test_dir + '/' + sa_file)
+        write_solution(test_csp.vars, num_bars=num_bars,solution_file=test_dir + '/' + sa_file, random_length=options.random)
 
         # Log stats in csv file for testing
         if testing:
@@ -253,6 +253,9 @@ def read_options(args):
 
     parser.add_option("-n",
                       action="store_false", dest="testing")
+
+    parser.add_option("--non-random",
+                      action="store_false", dest="random", default=True)
 
     (options, args) = parser.parse_args()
     configure_logging(options.loglevel)
