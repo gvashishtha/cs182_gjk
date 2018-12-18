@@ -4,7 +4,7 @@ Implements the Note class from Note.m in page 102 of Ovans and Cercone (1990)
 
 """
 import midi
-import random
+import random 
 
 UNISON = 0
 MINOR2ND = 1
