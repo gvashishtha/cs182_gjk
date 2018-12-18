@@ -24,7 +24,7 @@ TWELFTH = 19
 # ensure repeatability
 random.seed(5)
 
-def write_solution(one_sol, num_bars, solution_file, cp_chord=False, cf_chord=True):
+def write_solution(one_sol, num_bars, solution_file, cp_chord=False, cf_chord=True, random=True):
     cp_pitches = []
     cf_pitches = []
 
@@ -63,7 +63,10 @@ def write_solution(one_sol, num_bars, solution_file, cp_chord=False, cf_chord=Tr
 
     # Add all cantus firmus and counterpoint pitches to the track
     for i in range(num_bars):
-        length = random.choice(notelengths)
+        if random:
+            length = random.choice(notelengths)
+        else: 
+            length = 180
         for pitch in cf_pitches[i]:
             # Keep notes in the same chord at the same point
             on = midi.NoteOnEvent(tick=0, velocity=60, pitch=pitch)
@@ -108,13 +111,10 @@ class Note(object):
         self.checks += 1
         interval = abs(self.pitch - other.getPitch())
         #print ('interval between {} and {} is {}'.format(self, other, interval))
-        return ((interval == MINOR3RD) or
-                (interval == MAJOR3RD) or
+        return ((interval == MAJOR3RD) or
                 (interval == FIFTH) or
-                (interval == MINOR6TH) or
                 (interval == MAJOR6TH) or
                 (interval == OCTAVE) or
-                (interval == MINOR10TH) or
                 (interval == MAJOR10TH) or
                 (interval == TWELFTH))
 
