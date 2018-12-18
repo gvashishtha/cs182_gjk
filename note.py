@@ -24,7 +24,7 @@ TWELFTH = 19
 # ensure repeatability
 random.seed(5)
 
-def write_solution(one_sol, num_bars, solution_file, cp_chord=False, cf_chord=True, random=True):
+def write_solution(one_sol, num_bars, solution_file, cp_chord=False, cf_chord=True, random_length=True):
     cp_pitches = []
     cf_pitches = []
 
@@ -63,7 +63,7 @@ def write_solution(one_sol, num_bars, solution_file, cp_chord=False, cf_chord=Tr
 
     # Add all cantus firmus and counterpoint pitches to the track
     for i in range(num_bars):
-        if random:
+        if random_length:
             length = random.choice(notelengths)
         else: 
             length = 180
