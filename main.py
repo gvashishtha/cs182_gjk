@@ -75,7 +75,11 @@ def main(options=None):
 
     for i in range(num_bars):
         cp_note_list = range(30, 100)
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> 726047d3a48cca0de652f6f6c17031f6ce0bd46f
         if i != (num_bars - 2):
             map(lambda x: cp[i].addToDomain(Note(x)), cp_note_list)
         else:
@@ -171,9 +175,15 @@ def main(options=None):
         print('No solution found')
         return None
 
+<<<<<<< HEAD
     write_solution(csp.one_sol, num_bars=num_bars, solution_file=test_dir + '/' + solution_file)
     if test_csp.getCost(test_csp.vars) == 0:
         write_solution(test_csp.vars, num_bars=num_bars,solution_file=test_dir + '/' + sa_file)
+=======
+    write_solution(csp.one_sol, num_bars=num_bars, solution_file=test_dir + '/' + solution_file, random_length=options.random)
+    if test_csp.getCost(test_csp.vars) == 0:
+        write_solution(test_csp.vars, num_bars=num_bars,solution_file=test_dir + '/' + sa_file, random_length=options.random)
+>>>>>>> 726047d3a48cca0de652f6f6c17031f6ce0bd46f
 
         # Log stats in csv file for testing
         if testing:
@@ -254,6 +264,13 @@ def read_options(args):
     parser.add_option("-n",
                       action="store_false", dest="testing")
 
+<<<<<<< HEAD
+=======
+    parser.add_option("--non-random",
+                      action="store_false", dest="random", default=True)
+
+
+>>>>>>> 726047d3a48cca0de652f6f6c17031f6ce0bd46f
     (options, args) = parser.parse_args()
     configure_logging(options.loglevel)
 
