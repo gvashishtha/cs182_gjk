@@ -39,9 +39,9 @@ def write_solution(one_sol, num_bars, solution_file, cp_chord=False, cf_chord=Tr
         else: # Note is from the cantus firmus
             base = one_sol[i].domain[0].getPitch()
             if cf_chord:
-                if i == num_bars*2 - 3: 
+                if i == num_bars*2 - 3:
                     cf_pitches.append([base, base-4, base-7, base-12])
-                else: 
+                else:
                     cf_pitches.append([base, base-3, base-7, base-12])
             else:
                 cf_pitches.append([base])
@@ -65,7 +65,7 @@ def write_solution(one_sol, num_bars, solution_file, cp_chord=False, cf_chord=Tr
     for i in range(num_bars):
         if random_length:
             length = random.choice(notelengths)
-        else: 
+        else:
             length = 180
         for pitch in cf_pitches[i]:
             # Keep notes in the same chord at the same point
