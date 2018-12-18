@@ -3,7 +3,7 @@ note.py
 Implements the Note class from Note.m in page 102 of Ovans and Cercone (1990)
 
 """
-import midi
+import midi 
 import random
 
 UNISON = 0
