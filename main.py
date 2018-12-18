@@ -94,12 +94,12 @@ def main(options=None):
         L.setLabel(Note.melodic)
         cp[i-1].addToNeighbors(L)
 
-        """# extra constraint!!!!
+        # extra constraint!!!!
         if extra_harmonic and i != num_bars - 1:
 		    L = Link()
-		    L.setNode(binary[i+1])
+		    L.setNode(binary[i-1])
 		    L.setLabel(Note.harmonic)
-		    cp[i].addToNeighbors(L)"""
+		    cp[i].addToNeighbors(L)
 
     L = Link()
     L.setNode(binary[0])
