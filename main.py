@@ -11,7 +11,7 @@ import timeit
 # ensure repeatability
 random.seed(5)
 NUM_BARS = 4
-NOTE_RANGE = range(30, 100)
+NOTE_RANGE = [45, 47, 48, 50, 52, 53, 55, 57, 59, 60, 62, 64, 65, 67, 69]
 
 def main(options=None):
     num_bars = options.num_bars
@@ -94,12 +94,12 @@ def main(options=None):
         L.setLabel(Note.melodic)
         cp[i-1].addToNeighbors(L)
 
-        # extra constraint!!!!
+        """# extra constraint!!!!
         if extra_harmonic and i != num_bars - 1:
 		    L = Link()
 		    L.setNode(binary[i+1])
 		    L.setLabel(Note.harmonic)
-		    cp[i].addToNeighbors(L)
+		    cp[i].addToNeighbors(L)"""
 
     L = Link()
     L.setNode(binary[0])
@@ -235,7 +235,7 @@ def read_options(args):
                       help="CSV file output for simulated annealing testing stats")
 
     parser.add_option("--test_dir",
-                      dest="test_dir", default='', type="string",
+                      dest="test_dir", default='.', type="string",
                       help="Test directory")
 
     parser.add_option("--preset_song",
